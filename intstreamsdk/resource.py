@@ -467,3 +467,4 @@ class Source(ResourcePaged):
 
     def source_post(self, name):
         self.data = {"name": name}
+

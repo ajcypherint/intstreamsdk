@@ -35,5 +35,18 @@ class Job(object):
         return uploader.check_upload(indicators, resource_class)
 
     def run(self):
+
         args = self.parser.parse_args()
         self.custom(args)
+
+
+class IndicatorJob(Job):
+
+    def __init__(self, client_class):
+        super(IndicatorJob, self).__init__(client_class)
+        self.parser.add_argument("--indicator", type=str, required=True)
+
+    def custom(self, parsed_args):
+        # see /tests/integration.py for examples
+        pass
+
