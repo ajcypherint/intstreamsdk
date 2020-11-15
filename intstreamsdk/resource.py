@@ -10,21 +10,25 @@ LOG = logging.getLogger(__name__)
 class Resource(object):
     GET = "GET"
     POST = "POST"
+    PUT = "PUT"
     DELETE = "DELETE"
     OPTIONS = "OPTIONS"
     SUCCESS = "SUCCESS"
     FAILED = "FAILED"
 
-    def __init__(self, client, method=None):
+    def __init__(self, client, endpoint, method=None):
         self.client = client
         self.base = self.client.server_url+"api/"
-        self.endpoint=None  # assign endpoint to append to self.base
-        self.request_url=None  # final url to make the request call
+        self.endpoint= endpoint
+        self.request_url = '{base}{endpoint}'.format(base=self.base,
+                                                         endpoint=self.endpoint)
+
         self.method = method
         self.valid_codes = {Resource.GET: [200],
+                            Resource.PUT: [200],
                             Resource.POST: [201,200],
                             Resource.DELETE: [204]}
-        self.json = None  # any json data to send with request
+        self.json = None# any json data to send with request
         self.params = {}  # any query string parameters to send with request
         self.headers = {}  # any headers to send with request
         self.files = None
@@ -42,10 +46,7 @@ class Resource(object):
                                 json=self.json,
                                 files=self.files
                                 )
-        r = self.client.get_actual_response(pre_r)
-        if raise_exc:
-            r.raise_for_status()
-        return self.getdata(r)
+        return self.getdata(pre_r, raise_exc)
 
     def request(self):
         """
@@ -53,27 +54,28 @@ class Resource(object):
         :param rasise_exc: bool
         :return:
         """
-        r = self.client.request(method=self.method,
+        pre_r = self.client.request(method=self.method,
                                 headers=self.headers,
                                 request_url=self.request_url,
                                 params=self.params,
                                 json=self.json,
                                 )
-        return r
+        return pre_r
 
-    def response(self, request, raise_exc=True):
-        r = self.client.get_actual_response(request)
-        if raise_exc:
-            r.raise_for_status()
-        return self.data(r)
-
-    def getdata(self, response):
+    def getdata(self, pre_r, raise_exc=True):
         """
         Test for html error code and return data
         :param response
         :return:
         """
-        actual_response = response
+        r = self.client.get_actual_response(pre_r)
+        if raise_exc:
+            try:
+                r.raise_for_status()
+            except requests.HTTPError as e:
+                LOG.error(str(r.text))
+                raise e
+        actual_response = r
         result = {}
         if actual_response.status_code in self.valid_codes[self.method]:
             result["status"] = self.SUCCESS
@@ -121,8 +123,8 @@ class Resource(object):
 
 class ResourcePaged(Resource):
 
-    def __init__(self,client,method=Resource.GET):
-        super(ResourcePaged,self).__init__(client,method)
+    def __init__(self,client, endpoint, method=Resource.GET):
+        super(ResourcePaged,self).__init__(client, endpoint, method)
         self.first=True
         self.next=None #data field with next url
         self.previous=None #data field with previous url
@@ -144,10 +146,7 @@ class ResourcePaged(Resource):
 
 class BaseArticle(ResourcePaged):
     def __init__(self, endpoint, client:Client, method=Resource.GET, ):
-        super(BaseArticle,self).__init__(client, method)
-        self.endpoint = endpoint
-        self.request_url = '{base}{endpoint}'.format(base=self.base,
-                                                         endpoint=self.endpoint)
+        super(BaseArticle,self).__init__(client, endpoint, method)
 
     def article_post(self, title, source_id, filename):
         #set format to multipart
@@ -183,10 +182,7 @@ class WordDocxArticle(BaseArticle):
 
 class RawArticle(ResourcePaged):
     def __init__(self, client:Client, method=Resource.GET):
-        super(RawArticle,self).__init__(client, method)
-        self.endpoint = "rawarticles/"
-        self.request_url = '{base}{endpoint}'.format(base=self.base,
-                                                         endpoint=self.endpoint)
+        super(RawArticle,self).__init__(client, "rawarticles/", method)
 
     def article_post(self, title, source_id, text):
         """
@@ -210,59 +206,40 @@ class Indicator(ResourcePaged):
         self.json = [{"value": i} for i in indicators]
 
 
-
 class MD5(Indicator):
 
     def __init__(self, client:Client, method=Resource.GET):
-        super(MD5,self).__init__(client, method)
-        self.endpoint = "indicatormd5/"
-        self.request_url = '{base}{endpoint}'.format(base=self.base,
-                                                         endpoint=self.endpoint)
+        super(MD5,self).__init__(client, "indicatormd5/", method)
 
 
 class SHA1(Indicator):
 
     def __init__(self, client:Client, method=Resource.GET):
-        super(SHA1,self).__init__(client, method)
-        self.endpoint = "indicatorsha1/"
-        self.request_url = '{base}{endpoint}'.format(base=self.base,
-                                                     endpoint=self.endpoint)
+        super(SHA1,self).__init__(client, "indicatorsha1/", method)
 
 
 class SHA256(Indicator):
 
     def __init__(self, client:Client, method=Resource.GET):
-        super(SHA256,self).__init__(client, method)
-        self.endpoint = "indicatorsha256/"
-        self.request_url = '{base}{endpoint}'.format(base=self.base,
-                                                     endpoint=self.endpoint)
+        super(SHA256,self).__init__(client, "indicatorsha256/", method)
 
 
 class Email(Indicator):
 
     def __init__(self, client:Client, method=Resource.GET):
-        super(Email, self).__init__(client, method)
-        self.endpoint = "indicatoremail/"
-        self.request_url = '{base}{endpoint}'.format(base=self.base,
-                                                     endpoint=self.endpoint)
+        super(Email, self).__init__(client, "indicatoremail/", method)
 
 
 class IPV4(Indicator):
 
     def __init__(self, client:Client, method=Resource.GET):
-        super(IPV4, self).__init__(client, method)
-        self.endpoint = "indicatoripv4/"
-        self.request_url = '{base}{endpoint}'.format(base=self.base,
-                                                     endpoint=self.endpoint)
+        super(IPV4, self).__init__(client, "indicatoripv4/", method)
 
 
 class IPV6(Indicator):
 
     def __init__(self, client:Client, method=Resource.GET):
-        super(IPV6, self).__init__(client, method)
-        self.endpoint = "indicatoripv6/"
-        self.request_url = '{base}{endpoint}'.format(base=self.base,
-                                                     endpoint=self.endpoint)
+        super(IPV6, self).__init__(client, "indicatoripv6/", method)
 
 
 class PartsNetLoc(object):
@@ -300,10 +277,7 @@ class PartsNetLocValue(object):
 
 class NetLoc(Indicator):
     def __init__(self, client:Client, method=Resource.GET):
-        super(NetLoc, self).__init__(client, method)
-        self.endpoint = "indicatornetloc/"
-        self.request_url = '{base}{endpoint}'.format(base=self.base,
-                                                     endpoint=self.endpoint)
+        super(NetLoc, self).__init__(client, "indicatornetloc/", method)
 
     def indicators_post(self, indicators):
         """
@@ -319,10 +293,7 @@ class NetLoc(Indicator):
 
 class Suffix(Indicator):
     def __init__(self, client:Client, method=Resource.GET):
-        super(Suffix, self).__init__(client, method)
-        self.endpoint = "indicatorsuffix/"
-        self.request_url = '{base}{endpoint}'.format(base=self.base,
-                                                     endpoint=self.endpoint)
+        super(Suffix, self).__init__(client, "indicatorsuffix/", method)
 
 
 class IntstreamSDKException(Exception):
@@ -330,6 +301,10 @@ class IntstreamSDKException(Exception):
 
 
 class NoTLD(IntstreamSDKException):
+    pass
+
+
+class ColumnNotFound(IntstreamSDKException):
     pass
 
 
@@ -410,25 +385,34 @@ class DomainLoader(object):
 class Link(Indicator):
 
     def __init__(self, client:Client, method=Resource.GET, article_id=None, indicator_ids=None):
-        super(Link, self).__init__(client, method)
-        self.endpoint = "articles/{id}/link/".format(id=article_id)
-        self.request_url = '{base}{endpoint}'.format(base=self.base,
-                                                     endpoint=self.endpoint)
+        endpoint = "articles/{id}/link/".format(id=article_id)
+        super(Link, self).__init__(client, endpoint, method)
         self.json = {
             "indicator_ids": [i for i in indicator_ids]
         }
 
 
-class Uploader(object):
+class IndicatorAction(object):
     def __init__(self, client):
         self.client = client
+
+    def check_delete(self, indicators, resource_class):
+        resource_get = resource_class(client=self.client, method=Resource.GET)
+        filter = {"value__in":indicators}
+        resource_get.filter(filter)
+        response_get = resource_get.full_request()
+        existing = [i["id"] for i in response_get["data"]["results"]]
+        for i in existing:
+            resource_del = resource_class(client=self.client, method=Resource.DELETE)
+            resource_del.id(i)
+            resource_del.full_request()
 
     def check_upload(self,
                      indicators,
                      resource_class,
                      ):
         resource_get = resource_class(client=self.client, method=Resource.GET)
-        filter = {"value_in":indicators}
+        filter = {"value__in": indicators}
         resource_get.filter(filter)
         response_get = resource_get.full_request()
         existing = [i["value"] for i in response_get["data"]["results"]]
@@ -442,29 +426,134 @@ class Uploader(object):
         return all_data
 
 
-class ValueDelete(object):
+class ValueDelete(IndicatorAction):
+    """
+    deprecated
+    """
     def __init__(self, client):
-        self.client = client
+        super(ValueDelete, self).__init__(client)
 
-    def check_delete(self, indicators, resource_class):
-        resource_get = resource_class(client=self.client, method=Resource.GET)
-        filter = {"value_in":indicators}
-        resource_get.filter(filter)
-        response_get = resource_get.full_request()
-        existing = [i["id"] for i in response_get["data"]["results"]]
-        for i in existing:
-            resource_del = resource_class(client=self.client, method=Resource.DELETE)
-            resource_del.id(i)
-            resource_del.full_request()
+
+class Uploader(IndicatorAction):
+    """
+    deprecated
+    """
+    def __init__(self, client):
+        super(Uploader, self).__init__(client)
 
 
 class Source(ResourcePaged):
     def __init__(self, client:Client, method=Resource.GET):
-        super(Source, self).__init__(client, method)
-        self.endpoint = "sources/"
-        self.request_url = '{base}{endpoint}'.format(base=self.base,
-                                                     endpoint=self.endpoint)
+        super(Source, self).__init__(client, "sources/", method)
 
     def source_post(self, name):
-        self.data = {"name": name}
+        self.json = {"name": name}
+
+
+class CustomField(Resource):
+    """
+    abstract class
+    """
+    def __init__(self, client:Client, endpoint, method=Resource.GET):
+        super(CustomField, self).__init__(client, endpoint, method)
+
+    def col_value_put(self, id, name, value, indicator_id):
+        self.request_url += str(id) + "/"
+        self.json = {"name": name, "value": value,"indicator": indicator_id}
+
+    def col_value_post(self, name, value, indicator_id):
+        self.json = {"name": name, "value": value, "indicator": indicator_id}
+
+
+class IndicatorNumericField(CustomField):
+    def __init__(self, client:Client, method=Resource.GET):
+        super(IndicatorNumericField, self).__init__(client, "indicatornumericfield/", method)
+
+
+class IndicatorTextField(CustomField):
+    def __init__(self, client:Client, method=Resource.GET):
+        super(IndicatorTextField, self).__init__(client, "indicatortextfield/", method)
+
+
+class ColumnGetPerform(object):
+    def __init__(self, client):
+        self.client = client
+
+    def upsert(self, col_class,  name, value, indicator_id):
+        """
+
+        :param col_class: CustomField child class
+        :param name:
+        :param value:
+        :param indicator_id: int
+        :return:
+        """
+        res_get = col_class(self.client, method=Resource.GET)
+        res_get.filter({"name":name, "indicator": indicator_id})
+        r = res_get.full_request()
+        if len(r["data"]["results"]) == 0:
+            res_put = col_class(self.client, method=Resource.POST)
+            res_put.col_value_post(name=name, value=value, indicator_id=indicator_id)
+            res_put.full_request()
+
+        else:
+            id = r["data"]["results"][0]["id"]
+            res_put = col_class(self.client, method=Resource.PUT)
+            res_put.col_value_put(id=id, name=name, value=value, indicator_id=indicator_id)
+            res_put.full_request()
+
+
+class IndicatorJob(ResourcePaged):
+    def __init__(self, client:Client, method=Resource.GET):
+        super(IndicatorJob, self).__init__(client, "indicatorjob/", method)
+
+    def job_post(self, name,
+                 indicator_type_ids,
+                 python_version,
+                 user,
+                 arguments="",
+                 timeout=600,
+                 active=True):
+        """
+
+        :param name: str
+        :param indicator_type_ids: list[int]
+        :param python_version: str
+        :param arguments
+        :param user: str
+        :param timeout: int
+        :param active: boolean
+        :return:
+        """
+        self.json = {"name": name,
+                     "indicator_types": indicator_type_ids,
+                     "arguments": arguments,
+                     "python_version": python_version,
+                     "user": user,
+                     "timeout": timeout,
+                     "active": active}
+
+
+class IndicatorJobVersion(ResourcePaged):
+    def __init__(self, client:Client, method=Resource.GET):
+        super(IndicatorJobVersion, self).__init__(client, "indicatorjobversion/", method)
+
+    def job_version_post(self, indicator_job_id,
+                         version,
+                         filename):
+        """
+
+        :param indicator_job_id:
+        :param version:
+        :param filename:
+        :return:
+        """
+        self.files = {"job": (None, indicator_job_id),
+                      "version": (None, version),
+                      "zip": open(filename, "rb")}
+
+
+class IndicatorType(ResourcePaged):
+    def __init__(self, client:Client, method=Resource.GET):
+        super(IndicatorType, self).__init__(client, "indicatortype/", method)
 

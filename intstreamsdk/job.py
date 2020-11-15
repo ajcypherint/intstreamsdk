@@ -1,7 +1,9 @@
 from intstreamsdk import resource, client
 import os
 import argparse
+import logging
 
+LOG = logging.getLogger(__name__)
 
 class Job(object):
     def __init__(self,
@@ -13,7 +15,7 @@ class Job(object):
         server_url = os.environ.get("JOB_SERVER_URL", None)
         # below for server usage
         access = os.environ.get("JOB_ACCESS", None)
-        refresh =  os.environ.get("JOB_REFRESH", None)
+        refresh = os.environ.get("JOB_REFRESH", None)
 
         self.client = client_class(username=username,
                                  password=password,

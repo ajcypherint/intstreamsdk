@@ -151,7 +151,12 @@ class Client(object):
         :param rasise_exc: bool
         :return:
         """
-        expired = True if datetime.utcnow().timestamp() > self.expire-30 else False # 30 second buffer
+        expired = True
+        if self.expire is None:
+            expired = True
+        else:
+            expired = True if datetime.utcnow().timestamp() > self.expire-30 else False # 30 second buffer
+
         if expired:
             self.refresh_call()
         headers_req = {} if headers is None else headers
