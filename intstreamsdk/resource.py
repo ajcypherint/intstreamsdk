@@ -416,8 +416,9 @@ class IndicatorAction(object):
         resource_get.filter(filter)
         response_get = resource_get.full_request()
         existing = [i["value"] for i in response_get["data"]["results"]]
+        existing_obj = response_get["data"]["results"]
         not_existing = set(indicators).difference(existing)
-        all_data = existing
+        all_data = existing_obj
         if len(not_existing) > 0:
             resource_post = resource_class(client=self.client, method=Resource.POST)
             resource_post.indicators_post(not_existing)
