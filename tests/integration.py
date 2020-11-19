@@ -67,18 +67,17 @@ class Indicator(unittest.TestCase):
         #insert indicator
         indicator = "1.1.1.1"
         uploader = resource.IndicatorAction(self.client)
-        r = uploader.check_upload([indicator],resource.IPV4)
-        ind_id = r["data"]["results"][0]["id"]
+        r = uploader.check_upload([indicator], resource.IPV4)
+        ind_id = r[0]["id"]
         # wait for job to finish in celery
-        time.sleep(25)
+        time.sleep(15)
         # verify custom job field exists
         r_traffic = resource.IndicatorNumericField(self.client)
         r_traffic.filter({"indicator": ind_id, "name": "traffic"})
         res_traffic = r_traffic.full_request()
-        self.assertEqual(len(res_traffic["data"]["results"]), 1)
 
         # delete indicator
-        r_del = uploader.check_delete([indicator], resource.MD5)
+        r_del = uploader.check_delete([indicator], resource.IPV4)
 
         # delete job and versions
         res_del_job = resource.IndicatorJob(self.client, method=resource.Resource.DELETE)
@@ -87,6 +86,7 @@ class Indicator(unittest.TestCase):
 
 
         # create an indicator
+        self.assertEqual(len(res_traffic["data"]["results"]), 1)
         self.assertEqual(2, 1)
 
 
@@ -136,6 +136,9 @@ class IntegrationSync(unittest.TestCase):
     def test_email(self):
         ind = "test@testing.com"
         self._delete_update(resource.Email, ind)
+        uploader = resource.Uploader(self.client)
+        r_del = uploader.check_delete([ind], resource.Email)
+
 
     def _delete_update(self, resource_class, ind):
         """
@@ -164,25 +167,36 @@ class IntegrationSync(unittest.TestCase):
     def test_ipv4(self):
         ind = "1.1.1.1"
         self._delete_update(resource.IPV4, ind)
+        uploader = resource.Uploader(self.client)
+        r_del = uploader.check_delete([ind], resource.IPV4)
 
     def test_ipv6(self):
         ind = "2607:f0d0:1002:0051:0000:0000:0000:0004"
         self._delete_update(resource.IPV6, ind)
+        uploader = resource.Uploader(self.client)
+        r_del = uploader.check_delete([ind], resource.IPV6)
 
     def test_md5_resource(self):
         # get indicator
         ind = "0800fc577294c34e0b28ad2839435945"
         self._delete_update(resource.MD5, ind)
+        uploader = resource.Uploader(self.client)
+        r_del = uploader.check_delete([ind], resource.MD5)
+
 
     def test_sha256_resource(self):
         # get indicator
         ind = "b1bb0b49069db3871451654efb038e9674ca2595d665c9fc6b5c65e54c5f76cb"
         self._delete_update(resource.SHA256, ind)
+        uploader = resource.Uploader(self.client)
+        r_del = uploader.check_delete([ind], resource.SHA256)
 
     def test_sha1_resource(self):
         # get indicator
         ind = "2346ad27d7568ba9896f1b7da6b5991251debdf2"
         self._delete_update(resource.SHA1, ind)
+        uploader = resource.Uploader(self.client)
+        r_del = uploader.check_delete([ind], resource.SHA1)
 
     def test_domain(self):
         dom1 = "test.com"

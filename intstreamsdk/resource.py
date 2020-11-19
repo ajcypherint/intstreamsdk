@@ -398,7 +398,7 @@ class IndicatorAction(object):
 
     def check_delete(self, indicators, resource_class):
         resource_get = resource_class(client=self.client, method=Resource.GET)
-        filter = {"value__in":indicators}
+        filter = {"value__in": ",".join(indicators)}
         resource_get.filter(filter)
         response_get = resource_get.full_request()
         existing = [i["id"] for i in response_get["data"]["results"]]
@@ -412,17 +412,18 @@ class IndicatorAction(object):
                      resource_class,
                      ):
         resource_get = resource_class(client=self.client, method=Resource.GET)
-        filter = {"value__in": indicators}
+        filter = {"value__in": ",".join(indicators)}
         resource_get.filter(filter)
         response_get = resource_get.full_request()
         existing = [i["value"] for i in response_get["data"]["results"]]
         not_existing = set(indicators).difference(existing)
-
-        resource_post = resource_class(client=self.client, method=Resource.POST)
-        resource_post.indicators_post(not_existing)
-        response_post = resource_post.full_request()
-        all_data = response_get["data"]["results"]
-        all_data.extend(response_post["data"]["results"])
+        all_data = existing
+        if len(not_existing) > 0:
+            resource_post = resource_class(client=self.client, method=Resource.POST)
+            resource_post.indicators_post(not_existing)
+            response_post = resource_post.full_request()
+            all_data = response_get["data"]["results"]
+            all_data.extend(response_post["data"]["results"])
         return all_data
 
 

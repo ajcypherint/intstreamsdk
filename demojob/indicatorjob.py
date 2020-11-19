@@ -8,6 +8,7 @@ class IPv4Job(IndicatorJob):
         super(IPv4Job, self).__init__(client_class)
 
     def custom(self, parsed_args):
+        # retrieve id
         ipv4 = parsed_args.indicator
         md5_data = self.check_upload([ipv4], resource.IPV4)
         indicator_id = md5_data[0]["id"]
@@ -16,6 +17,7 @@ class IPv4Job(IndicatorJob):
         upsert = resource.ColumnGetPerform(self.client)
         # here query some system to get the traffic count.
         traffic_count = 1200
+        # save to databasennn
         upsert.upsert(resource.IndicatorNumericField, COL, traffic_count, indicator_id)
 
 

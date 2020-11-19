@@ -53,8 +53,6 @@ class Client(object):
 
         self.username = username
         self.password = password
-        self.access = access
-        self.refresh = refresh
         self.login_data = {"username": self.username,"password": self.password}
         self.server_url = server_url + "/" if server_url[-1] != "/" else server_url
         self.session = None  # request session  or future session
@@ -62,8 +60,8 @@ class Client(object):
 
         self.header_format=format
 
-        self.access_token = None
-        self.refresh_token = None
+        self.access_token = access
+        self.refresh_token = refresh
 
         self.access_header= None
         self.access_payload= None
@@ -118,7 +116,7 @@ class Client(object):
         if not self.access then call _set_keys after making request for authorization
         :return:
         """
-        if not self.access:
+        if not self.access_token:
             self.get_tokens()
 
     def _set_keys(self, response:requests.Response):
