@@ -19,18 +19,60 @@ class Indicator(unittest.TestCase):
         need to start the celery workers to fully test this
         :return:
         """
+
+        # upload indicatorjob
         base_dir = os.environ.get("BASE_DIR", "/tmp")
         job_file = os.path.join(base_dir, "fixtures/indicatorjob.tar.gz") # adds a traffic column
-        org_id = 1
+        text_job_file = os.path.join(base_dir, "fixtures/indicatorjobtext.tar.gz") # adds a traffic column
 
         ind_types = resource.IndicatorType(self.client, method=resource.Resource.GET)
         ind_types.filter({"name":"IPV4"})
         r = ind_types.full_request()
         ip_id = r["data"]["results"][0]["id"]
 
-        # see if job exists already
+        #########################
+        # see if text job exists
+        #########################
         r_ind_job_check = resource.IndicatorJob(self.client)
-        name = "sample"
+        name = "ip_category"
+        r_ind_job_check.filter({"name":name})
+        r_exists = r_ind_job_check.full_request()
+        text_job_id = None
+        if len(r_exists["data"]["results"]) == 0:
+            resource_ind_job = resource.IndicatorJob(self.client, method=resource.Resource.POST)
+            resource_ind_job.job_post(name=name,
+                                      indicator_type_ids=[ip_id],
+                                      python_version="3.6",
+                                      user=os.environ.get("TESTUSER",""),
+                                      timeout=600
+                                      )
+            r_job = resource_ind_job.full_request()
+
+            text_job_id = r_job["data"]["id"]
+        else:
+            text_job_id = r_exists["data"]["results"][0]["id"]
+
+        # see if version exists already
+        version = "1.0.0"
+        r_job_version_get = resource.IndicatorJobVersion(self.client,)
+        r_job_version_get.filter({"job": text_job_id,
+                                  "version": version
+                                  })
+        res = r_job_version_get.full_request()
+        text_job_version_id = None
+        if len(res["data"]["results"]) == 0:
+            resource_job_version = resource.IndicatorJobVersion(self.client, method=resource.Resource.POST)
+            resource_job_version.job_version_post(text_job_id, version, text_job_file)
+            r = resource_job_version.full_request()
+            text_job_version_id = r["data"]["id"]
+        else:
+            text_job_version_id = res["data"]["results"][0]["id"]
+
+        #########################
+        # see if traffic job exists already
+        #########################
+        r_ind_job_check = resource.IndicatorJob(self.client)
+        name = "ip_traffic"
         r_ind_job_check.filter({"name":name})
         r_exists = r_ind_job_check.full_request()
         job_id = None
@@ -70,11 +112,16 @@ class Indicator(unittest.TestCase):
         r = uploader.check_upload([indicator], resource.IPV4)
         ind_id = r[0]["id"]
         # wait for job to finish in celery
-        time.sleep(15)
+        time.sleep(55)
         # verify custom job field exists
         r_traffic = resource.IndicatorNumericField(self.client)
         r_traffic.filter({"indicator": ind_id, "name": "traffic"})
         res_traffic = r_traffic.full_request()
+
+        # verify text custom job field exists
+        r_cat = resource.IndicatorTextField(self.client)
+        r_cat.filter({"indicator": ind_id, "name": "category"})
+        res_cat = r_cat.full_request()
 
         # delete indicator
         r_del = uploader.check_delete([indicator], resource.IPV4)
@@ -82,12 +129,15 @@ class Indicator(unittest.TestCase):
         # delete job and versions
         res_del_job = resource.IndicatorJob(self.client, method=resource.Resource.DELETE)
         res_del_job.id(job_id)
-        res_del_job.full_request()
+        r_d0 = res_del_job.full_request()
 
+        # delete text job and versions
+        res_del_job = resource.IndicatorJob(self.client, method=resource.Resource.DELETE)
+        res_del_job.id(text_job_id)
+        r_d1 = res_del_job.full_request()
 
-        # create an indicator
         self.assertEqual(len(res_traffic["data"]["results"]), 1)
-        self.assertEqual(2, 1)
+        self.assertEqual(len(res_cat["data"]["results"]), 1)
 
 
 class IntegrationAsync(unittest.TestCase):
