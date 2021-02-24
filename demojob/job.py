@@ -51,6 +51,8 @@ class ExtractJob(Job):
             response_raw = resource_raw.full_request()
 
             indicators_ids = []
+            indicators_ids.extend([i["id"] for i in netloc_data])
+            indicators_ids.extend([i["id"] for i in email_data])
             indicators_ids.extend([i["id"] for i in md5_data])
             indicators_ids.extend([i["id"] for i in sha1_data])
             indicators_ids.extend([i["id"] for i in sha256_data])
@@ -72,6 +74,7 @@ class ExtractJob(Job):
         # cleanup (delete for cleanup. do not include in standard job)
         # urls
         uploader.delete()
+
         md5_del = resource.ValueDelete(client=self.client)
         md5_del.check_delete(indicators["md5"], resource.MD5)
         sha256_del = resource.ValueDelete(client=self.client)

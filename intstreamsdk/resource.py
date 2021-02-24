@@ -335,7 +335,7 @@ class DomainLoader(object):
         :param client: Client
         :param raise_exc: bool
         """
-        self.urls = ["http://" + i for i in urls]
+        self.urls = urls
         self.client = client
 
     def _get_perform(self, method):
