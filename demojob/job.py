@@ -73,20 +73,20 @@ class ExtractJob(Job):
 
         # cleanup (delete for cleanup. do not include in standard job)
         # urls
-        uploader.delete()
+        #uploader.delete()
 
-        md5_del = resource.ValueDelete(client=self.client)
-        md5_del.check_delete(indicators["md5"], resource.MD5)
-        sha256_del = resource.ValueDelete(client=self.client)
-        sha256_del.check_delete(indicators["sha256"], resource.SHA256)
-        sha1_del = resource.ValueDelete(client=self.client)
-        sha1_del.check_delete(indicators["sha1"], resource.SHA1)
-        email_del = resource.ValueDelete(client=self.client)
-        email_del.check_delete(indicators["email"], resource.Email)
-        ipv4_del = resource.ValueDelete(client=self.client)
-        ipv4_del.check_delete(indicators["ipv4"], resource.IPV4)
-        ipv6_del = resource.ValueDelete(client=self.client)
-        ipv6_del.check_delete(compressed_ipv6s, resource.IPV6)
+        #md5_del = resource.ValueDelete(client=self.client)
+        #md5_del.check_delete(indicators["md5"], resource.MD5)
+        #sha256_del = resource.ValueDelete(client=self.client)
+        #sha256_del.check_delete(indicators["sha256"], resource.SHA256)
+        #sha1_del = resource.ValueDelete(client=self.client)
+        #sha1_del.check_delete(indicators["sha1"], resource.SHA1)
+        #email_del = resource.ValueDelete(client=self.client)
+        #email_del.check_delete(indicators["email"], resource.Email)
+        #ipv4_del = resource.ValueDelete(client=self.client)
+        #ipv4_del.check_delete(indicators["ipv4"], resource.IPV4)
+        #ipv6_del = resource.ValueDelete(client=self.client)
+        #ipv6_del.check_delete(compressed_ipv6s, resource.IPV6)
 
 
 

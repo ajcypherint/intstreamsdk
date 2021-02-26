@@ -10,8 +10,8 @@ class IPv4Job(IndicatorJob):
     def custom(self, parsed_args):
         # retrieve id
         ipv4 = parsed_args.indicator
-        md5_data = self.check_upload([ipv4], resource.IPV4)
-        indicator_id = md5_data[0]["id"]
+        data = self.check_upload([ipv4], resource.IPV4)
+        indicator_id = data[0]["id"]
 
         COL = "category"
         upsert = resource.ColumnGetPerform(self.client)
