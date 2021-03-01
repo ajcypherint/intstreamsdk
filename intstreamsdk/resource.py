@@ -411,6 +411,12 @@ class IndicatorAction(object):
                      indicators,
                      resource_class,
                      ):
+        """
+        check upload for all indicator types except NetLoc; use DomainLoader instead
+        :param indicators:
+        :param resource_class:
+        :return:
+        """
         resource_get = resource_class(client=self.client, method=Resource.GET)
         filter = {"value__in": ",".join(indicators)}
         resource_get.filter(filter)

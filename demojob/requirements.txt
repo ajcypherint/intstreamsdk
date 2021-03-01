@@ -1,1 +1,1 @@
-intstreamsdk
+intstreamsdk>01.0.7
