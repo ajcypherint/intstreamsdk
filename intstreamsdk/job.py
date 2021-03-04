@@ -23,7 +23,6 @@ class Job(object):
                                  server_url=server_url,
                                  access=access,
                                  refresh=refresh,
-                                 expire=expire,
                                  format=format
                                  )
         self.parser = argparse.ArgumentParser()
