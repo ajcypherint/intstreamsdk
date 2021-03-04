@@ -1,1 +1,1 @@
-instreamsdk>=1.0.9
+instreamsdk>=1.0.10
