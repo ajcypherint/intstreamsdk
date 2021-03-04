@@ -315,7 +315,7 @@ class DomainExtractor(object):
         :param url:
         """
         self.subdomain, self.domain, self.suffix = tldextract.extract(url)
-        if self.suffix is None and raise_exc:
+        if (self.suffix is None or self.suffix == "") and raise_exc:
             raise NoTLD
         resource = Suffix(client)
         resource.filter(filter={"value":self.suffix})
