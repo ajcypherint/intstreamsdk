@@ -72,9 +72,17 @@ class Client(object):
         self.refresh_sig=None
 
         self.expire = None
+        if self.refresh_token is not None:
+            self.expire = self.get_expire(self.refresh_token)
+
         #todo use dict to map initialize, refresh_call, set_keys
         # this way can switch between oauth and jwt
 
+    def get_expire(self, refresh_token):
+        refresh_parts = refresh_token.split(".")
+        refresh_payload=base64.urlsafe_b64decode(refresh_parts[1].encode('ascii')+b'===')
+        expire = json.loads(refresh_payload)['exp']
+        return expire
 
     def get_tokens(self):
         headers={}
@@ -138,7 +146,7 @@ class Client(object):
                 self.refresh_header=base64.urlsafe_b64decode(refresh_parts[0].encode('ascii')+b'===')
                 self.refresh_payload=base64.urlsafe_b64decode(refresh_parts[1].encode('ascii')+b'===')
                 self.refresh_sig=base64.urlsafe_b64decode(refresh_parts[2].encode('ascii')+b'===')
-                self.expire = json.loads(self.refresh_payload)['exp']
+                self.expire = self.get_expire(self.refresh_token)
         else:
             raise RequestError("set keys failed: " + str(response.status_code) + " " + str(response.text))
 

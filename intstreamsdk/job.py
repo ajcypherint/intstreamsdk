@@ -16,12 +16,14 @@ class Job(object):
         # below for server usage
         access = os.environ.get("JOB_ACCESS", None)
         refresh = os.environ.get("JOB_REFRESH", None)
+        expire = os.environ.get("JOB_EXPIRE", None)
 
         self.client = client_class(username=username,
                                  password=password,
                                  server_url=server_url,
                                  access=access,
                                  refresh=refresh,
+                                 expire=expire,
                                  format=format
                                  )
         self.parser = argparse.ArgumentParser()
