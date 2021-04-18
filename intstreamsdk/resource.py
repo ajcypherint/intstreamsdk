@@ -104,6 +104,8 @@ class Resource(object):
         :param filter: dict
         :return:
         """
+        self.params = filter
+        """
         params = "?"
         count = 0
         for key, value in filter.items():
@@ -115,6 +117,7 @@ class Resource(object):
 
         self.request_url = '{current}{params}'.format(current=self.request_url,
                                                    params=params)
+        """
 
     def id(self, id):
         self.request_url = '{current}{id}/'.format(current=self.request_url,
@@ -204,7 +207,8 @@ class Indicator(ResourcePaged):
         :return:
         """
         self.json = [{"value": i} for i in indicators]
-
+    def indicators_put(self, info):
+        self.json = info
 
 class MD5(Indicator):
 
@@ -344,7 +348,8 @@ class DomainLoader(object):
         :param method: str
         :return: list[dict]
         """
-        net_locs = []
+        new_net_locs = []
+        existing = []
         all_data = []
         for i in self.urls:
             extractor = DomainExtractor(i, self.client,)
@@ -357,14 +362,23 @@ class DomainLoader(object):
             resource_get.filter(filter=filter)
             r = resource_get.full_request()
             if r["status"] == Resource.SUCCESS and r["data"]["count"] == 0:
-                net_locs.append(extractor.net_loc)
+                new_net_locs.append(extractor.net_loc)
             else:
-                all_data.extend(r["data"]["results"])
+                existing.extend(r["data"]["results"])
+                all_data.extend(existing)
+        if len(existing) > 0:
+            # update indicators to kick off indicator jobs on intstream
+            for i in existing:
+                del i["id"]
+                resource = NetLoc(self.client, method=Resource.PUT)
+                resource.indicators_put(i)
+                res = resource.full_request()
 
-        resource = NetLoc(self.client, method=Resource.POST)
-        resource.indicators_post(net_locs)
-        res = resource.full_request()
-        all_data.extend(res["data"]["results"])
+        if len(new_net_locs) > 0:
+            resource = NetLoc(self.client, method=Resource.POST)
+            resource.indicators_post(new_net_locs)
+            res = resource.full_request()
+            all_data.extend(res["data"]["results"])
         return all_data
 
     def upload(self):
@@ -431,6 +445,15 @@ class IndicatorAction(object):
             response_post = resource_post.full_request()
             all_data = response_get["data"]["results"]
             all_data.extend(response_post["data"]["results"])
+        if len(existing_obj) > 0:
+            # update indicator to kick off indicator tasks.
+            for i in existing_obj:
+                resource_put = resource_class(client=self.client, method=Resource.PUT)
+                resource_put.id(i["id"])
+                del i["id"]
+                resource_put.indicators_put(i)
+                response_put = resource_put.full_request()
+
         return all_data
 
 
