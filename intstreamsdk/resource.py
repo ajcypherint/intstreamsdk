@@ -3,6 +3,7 @@ from datetime import datetime
 from intstreamsdk.client import Client
 import tldextract
 import logging
+import copy
 
 LOG = logging.getLogger(__name__)
 
@@ -366,13 +367,13 @@ class DomainLoader(object):
             else:
                 existing.extend(r["data"]["results"])
                 all_data.extend(existing)
-        if len(existing) > 0:
-            # update indicators to kick off indicator jobs on intstream
-            for i in existing:
-                del i["id"]
-                resource = NetLoc(self.client, method=Resource.PUT)
-                resource.indicators_put(i)
-                res = resource.full_request()
+        #if len(existing) > 0:
+        #    # update indicators to kick off indicator jobs on intstream
+        #    for i in copy.deepcopy(existing):
+        #        del i["id"]
+        #        resource = NetLoc(self.client, method=Resource.PUT)
+        #        resource.indicators_put(i)
+        #        res = resource.full_request()
 
         if len(new_net_locs) > 0:
             resource = NetLoc(self.client, method=Resource.POST)
@@ -445,14 +446,14 @@ class IndicatorAction(object):
             response_post = resource_post.full_request()
             all_data = response_get["data"]["results"]
             all_data.extend(response_post["data"]["results"])
-        if len(existing_obj) > 0:
-            # update indicator to kick off indicator tasks.
-            for i in existing_obj:
-                resource_put = resource_class(client=self.client, method=Resource.PUT)
-                resource_put.id(i["id"])
-                del i["id"]
-                resource_put.indicators_put(i)
-                response_put = resource_put.full_request()
+        #if len(existing_obj) > 0:
+        #    # update indicator to kick off indicator tasks.
+        #    for i in copy.deepcopy(existing_obj):
+        #        resource_put = resource_class(client=self.client, method=Resource.PUT)
+        #        resource_put.id(i["id"])
+        #        del i["id"]
+        #        resource_put.indicators_put(i)
+        #        response_put = resource_put.full_request()
 
         return all_data
 
