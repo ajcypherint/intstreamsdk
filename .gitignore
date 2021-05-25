@@ -1,5 +1,6 @@
 *.swp
 *.pyc
+*.tar.gz
 .idea/
 dist/
 intstreamsdk.egg-info/

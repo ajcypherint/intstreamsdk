@@ -1,6 +1,7 @@
 from intstreamsdk.job import IndicatorJob
 from intstreamsdk.client import SyncClient
 from intstreamsdk import resource
+import random
 
 
 class IPv4Job(IndicatorJob):
@@ -16,7 +17,7 @@ class IPv4Job(IndicatorJob):
         COL = "traffic"
         upsert = resource.ColumnGetPerform(self.client)
         # here query some system to get the traffic count.
-        traffic_count = 1200
+        traffic_count = random.randint(0,2)
         # save to databasennn
         upsert.upsert(resource.IndicatorNumericField, COL, traffic_count, indicator_id)
 

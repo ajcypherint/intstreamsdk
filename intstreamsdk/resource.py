@@ -425,11 +425,14 @@ class IndicatorAction(object):
     def check_upload(self,
                      indicators,
                      resource_class,
+                     update=False
                      ):
         """
         check upload for all indicator types except NetLoc; use DomainLoader instead
         :param indicators:
         :param resource_class:
+        :param update: bool. set to True if you want tasks to run for each indicator
+        whether or not it already exists in the database
         :return:
         """
         resource_get = resource_class(client=self.client, method=Resource.GET)
@@ -446,14 +449,15 @@ class IndicatorAction(object):
             response_post = resource_post.full_request()
             all_data = response_get["data"]["results"]
             all_data.extend(response_post["data"]["results"])
-        #if len(existing_obj) > 0:
-        #    # update indicator to kick off indicator tasks.
-        #    for i in copy.deepcopy(existing_obj):
-        #        resource_put = resource_class(client=self.client, method=Resource.PUT)
-        #        resource_put.id(i["id"])
-        #        del i["id"]
-        #        resource_put.indicators_put(i)
-        #        response_put = resource_put.full_request()
+        if update:
+            if len(existing_obj) > 0:
+                # update indicator to kick off indicator tasks.
+                for i in copy.deepcopy(existing_obj):
+                    resource_put = resource_class(client=self.client, method=Resource.PUT)
+                    resource_put.id(i["id"])
+                    resource_put.indicators_put(i)
+                    response_put = resource_put.full_request()
+                    all_data.extend(response_put["data"])
 
         return all_data
 
@@ -495,6 +499,13 @@ class CustomField(Resource):
 
     def col_value_post(self, name, value, indicator_id):
         self.json = {"name": name, "value": value, "indicator": indicator_id}
+
+    def getIndicatorColumns(self, indicator_id):
+        # retrieve id
+        res_col_get = CustomField(self.client, endpoint=self.endpoint, method=Resource.GET)
+        res_col_get.filter({"indicator": indicator_id})
+        r = res_col_get.full_request()
+        return r["data"]["results"]
 
 
 class IndicatorNumericField(CustomField):
@@ -538,6 +549,8 @@ class ColumnGetPerform(object):
 class IndicatorJob(ResourcePaged):
     def __init__(self, client:Client, method=Resource.GET):
         super(IndicatorJob, self).__init__(client, "indicatorjob/", method)
+
+
 
     def job_post(self, name,
                  indicator_type_ids,
