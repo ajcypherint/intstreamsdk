@@ -33,9 +33,10 @@ class Job(object):
     def check_upload(self,
                      indicators,
                      resource_class,
+                     update=False
                      ):
         uploader = resource.Uploader(self.client)
-        return uploader.check_upload(indicators, resource_class)
+        return uploader.check_upload(indicators, resource_class, update)
 
     def run(self):
 
