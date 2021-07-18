@@ -28,6 +28,10 @@ class IPv4AutoMitigateJob(IndicatorJob):
             if len(data) > 0:
                 # if no traffic then mitigate
                 if data[0]["value"] == 0:
+                    ########
+                    # insert mitigation code here.
+                    # if successful set mitigated
+                    ########
                     # update indicator and set mitigated = True
                     put_resource = resource.IPV4(self.client, resource.Resource.PUT)
                     put_resource.id(indicator_id)

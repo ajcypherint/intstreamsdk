@@ -343,7 +343,7 @@ class DomainLoader(object):
         self.urls = urls
         self.client = client
 
-    def _get_perform(self, method):
+    def _get_perform(self, method, update=True):
         """
 
         :param method: str
@@ -367,13 +367,13 @@ class DomainLoader(object):
             else:
                 existing.extend(r["data"]["results"])
                 all_data.extend(existing)
-        #if len(existing) > 0:
-        #    # update indicators to kick off indicator jobs on intstream
-        #    for i in copy.deepcopy(existing):
-        #        del i["id"]
-        #        resource = NetLoc(self.client, method=Resource.PUT)
-        #        resource.indicators_put(i)
-        #        res = resource.full_request()
+        if update and len(existing) > 0:
+            # update indicators to kick off indicator jobs on intstream
+            for i in copy.deepcopy(existing):
+                del i["id"]
+                resource = NetLoc(self.client, method=Resource.PUT)
+                resource.indicators_put(i)
+                res = resource.full_request()
 
         if len(new_net_locs) > 0:
             resource = NetLoc(self.client, method=Resource.POST)
@@ -425,7 +425,7 @@ class IndicatorAction(object):
     def check_upload(self,
                      indicators,
                      resource_class,
-                     update=False
+                     update=True
                      ):
         """
         check upload for all indicator types except NetLoc; use DomainLoader instead
