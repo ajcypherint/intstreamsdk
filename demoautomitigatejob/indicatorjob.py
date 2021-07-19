@@ -27,7 +27,7 @@ class IPv4AutoMitigateJob(IndicatorJob):
             # if traffic column found
             if len(data) > 0:
                 # if no traffic then mitigate
-                if data[0]["value"] == 0:
+                if data[0].get("value", 0) == 0:
                     ########
                     # insert mitigation code here.
                     # if successful set mitigated
@@ -36,9 +36,10 @@ class IPv4AutoMitigateJob(IndicatorJob):
                     put_resource = resource.IPV4(self.client, resource.Resource.PUT)
                     put_resource.id(indicator_id)
                     indicator_data = indicators[0]
-                    indicator_data[MITIGATED] = True
-                    put_resource.indicators_put(indicator_data)
-                    put_resource.full_request()
+                    if not indicator_data.get(MITIGATED, False):
+                        indicator_data[MITIGATED] = True
+                        put_resource.indicators_put(indicator_data)
+                        put_resource.full_request()
 
 
 if __name__ == "__main__":
