@@ -28,10 +28,10 @@ class IPv4AutoMitigateJob(IndicatorJob):
             put_resource = resource.IPV4(self.client, resource.Resource.PUT)
             put_resource.id(indicator_id)
             indicator_data = indicators[0]
-            if not indicator_data.get(MITIGATED, False):
-                indicator_data[MITIGATED] = False
-                put_resource.indicators_put(indicator_data)
-                put_resource.full_request()
+            print("mitigated: " + str(indicator_data[MITIGATED]))
+            indicator_data[MITIGATED] = False
+            put_resource.indicators_put(indicator_data)
+            put_resource.full_request()
 
 
 if __name__ == "__main__":
