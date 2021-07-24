@@ -208,8 +208,16 @@ class Indicator(ResourcePaged):
         :return:
         """
         self.json = [{"value": i} for i in indicators]
+
     def indicators_put(self, info):
         self.json = info
+
+
+class IndicatorBase(Indicator):
+
+    def __init__(self, client:Client, method=Resource.GET):
+        super(IndicatorBase, self).__init__(client, "indicatorbase/", method)
+
 
 class MD5(Indicator):
 
