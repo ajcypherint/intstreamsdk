@@ -56,7 +56,7 @@ class AutoMitigateJob(IndicatorJob):
             indicator = indicators[0]
             indicator_id = indicator["id"]
             do_mitigate = self.do_mitigate(indicator)
-            if indicator.allowed:
+            if indicator["allowed"]:
                 do_mitigate = False
             if do_mitigate:
                 put_resource = getattr(resource,MODEL)(self.client, resource.Resource.PUT)
