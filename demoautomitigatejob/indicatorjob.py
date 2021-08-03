@@ -1,6 +1,7 @@
 from intstreamsdk.job import IndicatorJob
 from intstreamsdk.client import SyncClient
 from intstreamsdk import resource
+import random
 
 TRAFFIC = "traffic"
 MITIGATED = "mitigated"
@@ -34,7 +35,9 @@ class AutoMitigateJob(IndicatorJob):
             # if no traffic then mitigate
             if data[0].get("value", 0) == 0:
                 return True
-        return False
+        # fake a result for now
+        # return False
+        return bool(random.getrandbits(1))
 
     def custom(self, parsed_args):
         """

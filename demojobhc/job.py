@@ -8,6 +8,10 @@ from intstreamsdk import extract
 from intstreamsdk import resource
 import argparse
 import ipaddress
+import random
+import uuid
+from hashlib import md5, sha256, sha1
+import ipaddress
 
 # demo class and main below.
 # server side will pass access and refresh instead.
@@ -32,20 +36,27 @@ class ExtractJob(Job):
                 1.1.1.1
                 2607:f0d0:1002:0051:0000:0000:0000:0004"""
             #demo upload indicators
-            # !!instead just set extract_indicators on source!!
 
+        random_ipv4 = str(random.randint(1,255)) + "." \
+                    + str(random.randint(1,255)) + "." \
+                      + str(random.randint(1,255)) + "." \
+                      + str(random.randint(1,255))
 
-        indicators = extract.extract_all(text)
-
-        md5_data = self.check_upload(indicators["md5"], resource.MD5)
-        sha1_data = self.check_upload(indicators["sha1"], resource.SHA1)
-        sha256_data = self.check_upload(indicators["sha256"], resource.SHA256)
-        email_data = self.check_upload(indicators["email"], resource.Email)
-        ipv4_data = self.check_upload(indicators["ipv4"], resource.IPV4)
-        compressed_ipv6s = [ipaddress.IPv6Address(i).compressed for i in indicators["ipv6"]]
+        random_md5 = md5(str(uuid.uuid4()).encode("utf8")).hexdigest()
+        random_sha256= sha256(str(uuid.uuid4()).encode("utf8")).hexdigest()
+        random_sha1 = sha1(str(uuid.uuid4()).encode("utf8")).hexdigest()
+        random_domain = 'http://' + str(uuid.uuid4()) + ".com"
+        random_email = str(uuid.uuid4()) + '@gmail.com'
+        random_ipv6 = str(ipaddress.IPv6Address(random.randint(0, 2 ** 128 - 1)))
+        md5_data = self.check_upload([random_md5], resource.MD5)
+        sha1_data = self.check_upload([random_sha1], resource.SHA1)
+        sha256_data = self.check_upload([random_sha256], resource.SHA256)
+        email_data = self.check_upload([random_email], resource.Email)
+        ipv4_data = self.check_upload([random_ipv4], resource.IPV4)
+        compressed_ipv6s = [ipaddress.IPv6Address(i).compressed for i in [random_ipv6]]
         ipv6_data = self.check_upload(compressed_ipv6s, resource.IPV6)
         # no url indicator; domain instead
-        uploader = resource.DomainLoader(indicators["url"], self.client)
+        uploader = resource.DomainLoader([random_domain], self.client)
         netloc_data = uploader.upload()
         # reset to start of file
         # demo upload html article
