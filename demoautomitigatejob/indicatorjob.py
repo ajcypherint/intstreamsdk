@@ -33,11 +33,9 @@ class AutoMitigateJob(IndicatorJob):
         # if traffic column found
         if len(data) > 0:
             # if no traffic then mitigate
-            if data[0].get("value", 0) == 0:
+            if data[0].get("value") == 0:
                 return True
-        # fake a result for now
-        # return False
-        return bool(random.getrandbits(1))
+        return False
 
     def custom(self, parsed_args):
         """
