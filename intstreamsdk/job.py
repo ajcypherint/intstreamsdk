@@ -5,6 +5,7 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
+
 class Job(object):
     def __init__(self,
                  client_class,

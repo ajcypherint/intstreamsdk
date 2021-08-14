@@ -558,8 +558,6 @@ class IndicatorJob(ResourcePaged):
     def __init__(self, client:Client, method=Resource.GET):
         super(IndicatorJob, self).__init__(client, "indicatorjob/", method)
 
-
-
     def job_post(self, name,
                  indicator_type_ids,
                  python_version,

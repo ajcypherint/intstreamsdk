@@ -1,21 +1,17 @@
-from intstreamsdk.job import IndicatorJob
 from intstreamsdk.client import SyncClient
-from intstreamsdk import resource
-import random
+from intstreamsdk import mitigate, resource
 
 TRAFFIC = "traffic"
-MITIGATED = "mitigated"
 
 #####
 # TODO: Edit the resource model for indicator type you want to mitigate:
 # IPV4, IPV6, Sha1, Sha256, MD5, NetLoc
 #######
-MODEL = "IPV4"
 
 
-class AutoMitigateJob(IndicatorJob):
-    def __init__(self, client_class):
-        super(AutoMitigateJob, self).__init__(client_class)
+class AutoIPV4MitigateJob(mitigate.MitigateJob):
+    def __init__(self, client_class, ):
+        super(AutoIPV4MitigateJob, self).__init__(client_class, mitigate.RESOURCE_IPV4)
 
     def do_mitigate(self, indicator):
         """
@@ -37,34 +33,6 @@ class AutoMitigateJob(IndicatorJob):
                 return True
         return False
 
-    def custom(self, parsed_args):
-        """
-        DO NOT EDIT
-        :param parsed_args:
-        :return:
-        """
-
-        # get indicator data
-        ip_resource = getattr(resource, MODEL)(self.client)
-        ip_resource.filter({"value": parsed_args.indicator})
-        res = ip_resource.full_request()
-        indicators = res["data"]["results"]
-        # if indicator found
-        if len(indicators) > 0:
-            indicator = indicators[0]
-            indicator_id = indicator["id"]
-            do_mitigate = self.do_mitigate(indicator)
-            if indicator["allowed"]:
-                do_mitigate = False
-            if do_mitigate:
-                put_resource = getattr(resource,MODEL)(self.client, resource.Resource.PUT)
-                put_resource.id(indicator_id)
-                indicator_data = indicators[0]
-                if not indicator_data[MITIGATED]:
-                    indicator_data[MITIGATED] = True
-                    put_resource.indicators_put(indicator_data)
-                    put_resource.full_request()
-
 
 if __name__ == "__main__":
     # set env variables:
@@ -73,6 +41,6 @@ if __name__ == "__main__":
     # JOB_SERVER_URL - base server url
 
     # initialize job object     with SyncClient or AsyncClient
-    demo = AutoMitigateJob(SyncClient)
+    demo = AutoIPV4MitigateJob(SyncClient)
     # add any
     demo.run()
