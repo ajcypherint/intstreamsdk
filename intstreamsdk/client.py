@@ -105,7 +105,7 @@ class Client(object):
         data = {"refresh":self.refresh_token}
         r = self.session.post(self.server_url+"api/token-refresh/",
                                  json=data,
-                                 headers=headers)
+                                 headers=headers, timeout=120)
         if r.status_code == requests.codes.ok:
             self._set_keys(r)
         else:
@@ -174,7 +174,8 @@ class Client(object):
                                      url=request_url,
                                      params=params,
                                      json=json,
-                                     files=files)
+                                     files=files,
+                                 timeout=self.timeout)
         return r
 
 
@@ -188,7 +189,7 @@ class AsyncClient(Client):
                  refresh=None,
                  proxies:str=None,
                  verify:bool=True,
-                 timeout=True,
+                 timeout=120,
                  format: str=Client.FORMAT_JSON,
                 ):
         """
@@ -235,7 +236,7 @@ class SyncClient(Client):
                  proxies:dict=None,
                  verify:bool=True,
                  format:str=Client.FORMAT_JSON,
-                 timeout=True):
+                 timeout=120):
         """
         :param server_url:
         :param username:
