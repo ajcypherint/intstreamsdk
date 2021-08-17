@@ -200,6 +200,11 @@ class RawArticle(ResourcePaged):
                      "text": text}
 
 
+class UserInfo(ResourcePaged):
+    def __init__(self, client:Client, method=Resource.GET):
+        super(UserInfo, self).__init__(client, "userinfo/", method)
+
+
 class Indicator(ResourcePaged):
     def indicators_post(self, indicators):
         """
@@ -378,10 +383,13 @@ class DomainLoader(object):
         if update and len(existing) > 0:
             # update indicators to kick off indicator jobs on intstream
             for i in copy.deepcopy(existing):
-                del i["id"]
                 resource = NetLoc(self.client, method=Resource.PUT)
+                resource.id(i["id"])
+                del i["id"]
+                del i["value"]
                 resource.indicators_put(i)
                 res = resource.full_request()
+                all_data.extend([res["data"]])
 
         if len(new_net_locs) > 0:
             resource = NetLoc(self.client, method=Resource.POST)
@@ -560,7 +568,6 @@ class IndicatorJob(ResourcePaged):
 
     def job_post(self, name,
                  indicator_type_ids,
-                 python_version,
                  user,
                  arguments="",
                  timeout=600,
@@ -579,7 +586,6 @@ class IndicatorJob(ResourcePaged):
         self.json = {"name": name,
                      "indicator_types": indicator_type_ids,
                      "arguments": arguments,
-                     "python_version": python_version,
                      "user": user,
                      "timeout": timeout,
                      "active": active}
