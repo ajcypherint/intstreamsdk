@@ -84,14 +84,15 @@ class MitigateJob(job.IndicatorJob):
         if len(indicators) > 0:
             indicator = indicators[0]
             indicator_id = indicator["id"]
-            do_mitigate = self.do_mitigate(indicator)
-            if indicator["allowed"]:
+            if not indicator[MITIGATED]:
                 do_mitigate = False
-            if do_mitigate:
-                put_resource = getattr(resource, self.model)(self.client, resource.Resource.PUT)
-                put_resource.id(indicator_id)
-                indicator_data = indicators[0]
-                if not indicator_data[MITIGATED]:
-                    indicator_data[MITIGATED] = True
-                    put_resource.indicators_put(indicator_data)
+                if indicator["allowed"]:
+                    do_mitigate = False
+                else:
+                    do_mitigate = self.do_mitigate(indicator)
+                if do_mitigate:
+                    put_resource = getattr(resource, self.model)(self.client, resource.Resource.PUT)
+                    put_resource.id(indicator_id)
+                    indicator[MITIGATED] = True
+                    put_resource.indicators_put(indicator)
                     put_resource.full_request()
